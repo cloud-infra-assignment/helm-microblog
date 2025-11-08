@@ -1,0 +1,60 @@
+# Microblog Flask Application Helm Chart Values
+
+# Application Pod Configuration
+replicaCount: 2
+
+image:
+  repository: ghcr.io/cloud-infra-assignment/microblog
+  pullPolicy: IfNotPresent
+  tag: 6
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5000
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+# Application Configuration
+config:
+  secretKey: "your-production-secret-key-change-me"
+  logToStdout: "1"
+
+# CloudPirates PostgreSQL OCI Chart
+postgres:
+  enabled: true
+  auth:
+    password: "microblog-prod-password"
+    database: microblog
+  persistence:
+    enabled: true
+    size: 10Gi
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 5432
+
+# CloudPirates Redis OCI Chart
+redis:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 2Gi
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 6379
+
+# Image Pull Secrets for Private Registry
+imagePullSecrets:
+  - name: ghcr-secret
+
+# Ingress Configuration
+ingress:
+  enabled: true
