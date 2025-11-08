@@ -1,3 +1,4 @@
+{{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -5,14 +6,28 @@ metadata:
   labels:
     app: {{ .Chart.Name }}
   annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-central-1:339051025574:certificate/210c13ed-d02d-4748-a53e-925430aeadd3
-    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
-  ingressClassName: alb
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
   rules:
+  {{- if .Values.ingress.hosts }}
+  {{- range .Values.ingress.hosts }}
+  - host: {{ . | quote }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $.Chart.Name }}
+            port:
+              number: {{ $.Values.service.port }}
+  {{- end }}
+  {{- else }}
   - http:
       paths:
       - path: /
@@ -21,5 +36,7 @@ spec:
           service:
             name: {{ .Chart.Name }}
             port:
-              number: 80
+              number: {{ .Values.service.port }}
+  {{- end }}
+{{- end }}
 

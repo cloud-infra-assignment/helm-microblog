@@ -29,27 +29,23 @@ config:
 # CloudPirates PostgreSQL OCI Chart
 postgres:
   enabled: true
+  # If the subchart exposes a different service name, set it here
+  serviceName: ""
   auth:
     password: "microblog-prod-password"
     database: microblog
   persistence:
     enabled: true
     size: 10Gi
-  service:
-    enabled: true
-    type: ClusterIP
-    port: 5432
 
 # CloudPirates Redis OCI Chart
 redis:
   enabled: true
+  # If the subchart exposes a different service name, set it here
+  serviceName: ""
   persistence:
     enabled: true
     size: 2Gi
-  service:
-    enabled: true
-    type: ClusterIP
-    port: 6379
 
 # Image Pull Secrets for Private Registry
 imagePullSecrets:
@@ -58,3 +54,27 @@ imagePullSecrets:
 # Ingress Configuration
 ingress:
   enabled: true
+  className: alb
+  # Extra annotations applied to the Ingress (ALB controller settings)
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+  # Optional list of hostnames to configure host-based routing
+  hosts: []
+  # Provide HTTPS-related annotations (including certificate ARN) above in ingress.annotations
+
+# Pod Disruption Budget
+pdb:
+  enabled: true
+  minAvailable: 1
+
+# Secret configuration for app secrets
+secrets:
+  # If true, create a Secret for SECRET_KEY
+  create: true
+  # Name of the Secret. Defaults to chart name if empty
+  name: ""
+  # Key name inside the Secret that stores the SECRET_KEY
+  secretKeyKey: "secretKey"

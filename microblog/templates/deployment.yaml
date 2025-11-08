@@ -25,13 +25,22 @@ spec:
         ports:
         - containerPort: 5000
           name: http
+        {{- $pgsvc := default (printf "%s-postgres" .Release.Name) .Values.postgres.serviceName }}
+        {{- $redissvc := default (printf "%s-redis" .Release.Name) .Values.redis.serviceName }}
         env:
         - name: DATABASE_URL
-          value: "postgresql://postgres:{{ .Values.postgres.auth.password }}@{{ .Chart.Name }}-postgres:5432/{{ .Values.postgres.auth.database }}"
+          value: "postgresql://postgres:{{ .Values.postgres.auth.password }}@{{ $pgsvc }}:5432/{{ .Values.postgres.auth.database }}"
         - name: REDIS_URL
-          value: "redis://{{ .Chart.Name }}-redis:6379/0"
+          value: "redis://{{ $redissvc }}:6379/0"
         - name: SECRET_KEY
+          {{- if and .Values.secrets (or .Values.secrets.create .Values.secrets.name) }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ default .Chart.Name .Values.secrets.name }}
+              key: {{ default "secretKey" .Values.secrets.secretKeyKey }}
+          {{- else }}
           value: {{ .Values.config.secretKey | quote }}
+          {{- end }}
         - name: LOG_TO_STDOUT
           value: {{ .Values.config.logToStdout | quote }}
         resources:
