@@ -4,9 +4,9 @@
 replicaCount: 2
 
 image:
-repository: ghcr.io/cloud-infra-assignment/microblog
+  repository: ghcr.io/cloud-infra-assignment/microblog
   pullPolicy: IfNotPresent
-tag: "36"
+  tag: "36"
 
 service:
   type: ClusterIP
